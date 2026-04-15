@@ -1,12 +1,12 @@
-import os
-import json
-from datetime import datetime
 from google import genai
 from google.genai import types
+import json
+import os
+from datetime import datetime
 
 from config import *
 from prompts import STORY_PROMPT
-from story_manager import get_next_episode  # ✅ Important Import
+from story_manager import get_next_episode
 from image_generator import generate_image
 from voice_generator import generate_voice
 from video_creator import create_video
@@ -17,7 +17,7 @@ client = genai.Client(api_key=GEMINI_API_KEY)
 
 def generate_story():
     response = client.models.generate_content(
-        model="gemini-1.5-pro",
+        model="gemini-1.5-flash",  # ✅ Updated model
         contents=STORY_PROMPT,
         config=types.GenerateContentConfig(
             temperature=0.8,
@@ -25,9 +25,23 @@ def generate_story():
         )
     )
 
-    text = response.text
+    # Extract text safely
+    if hasattr(response, "text") and response.text:
+        text = response.text
+    else:
+        # Fallback extraction
+        text = ""
+        for candidate in response.candidates:
+            for part in candidate.content.parts:
+                if hasattr(part, "text"):
+                    text += part.text
+
+    # Extract JSON from response
     start = text.find("{")
     end = text.rfind("}") + 1
+    if start == -1 or end == -1:
+        raise ValueError("Failed to parse JSON from Gemini response.")
+
     return json.loads(text[start:end])
 
 def main():
