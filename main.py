@@ -12,8 +12,7 @@ from huggingface_hub import hf_hub_download
 
 model_path = hf_hub_download(
     repo_id="microsoft/Phi-3-mini-4k-instruct",
-    filename="model.gguf",
-    token=os.getenv("HF_TOKEN")
+    filename="model.gguf"
 )
 
 def main():
