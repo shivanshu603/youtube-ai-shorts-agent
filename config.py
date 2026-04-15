@@ -1,7 +1,7 @@
 import os
 
 # Gemini API
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+# GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # YouTube API Credentials
 YOUTUBE_CLIENT_ID = os.getenv("YOUTUBE_CLIENT_ID")
