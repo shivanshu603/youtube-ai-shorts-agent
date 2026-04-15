@@ -3,7 +3,7 @@ from google.genai import types
 import json
 import os
 from datetime import datetime
-
+from story_generator_local import generate_story
 from config import *
 from prompts import STORY_PROMPT
 from story_manager import get_next_episode
