@@ -6,6 +6,7 @@ from huggingface_hub import hf_hub_download
 MODEL_REPO = "TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF"
 MODEL_FILE = "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"
 
+
 def load_model():
     model_path = hf_hub_download(
         repo_id=MODEL_REPO,
@@ -19,31 +20,32 @@ def load_model():
         verbose=False
     )
 
-# Load model once
+
 llm = load_model()
+
 
 def generate_story():
     prompt = """
-    <s>[INST]
-    Create a unique and engaging Hindi moral story for a YouTube Shorts video.
+<s>[INST]
+Create a unique and engaging Hindi moral story for a YouTube Shorts video.
 
-    Return ONLY valid JSON in the following format:
-    {
-      "story_title": "",
-      "scenes": [
-        {"narration": "", "image_prompt": ""}
-      ],
-      "youtube_title": "",
-      "description": "",
-      "tags": []
-    }
+Return ONLY valid JSON in the following format:
+{
+  "story_title": "",
+  "scenes": [
+    {"narration": "", "image_prompt": ""}
+  ],
+  "youtube_title": "",
+  "description": "",
+  "tags": []
+}
 
-    Requirements:
-    - 5 scenes
-    - Each narration should be 1-2 sentences.
-    - Include a moral lesson.
-    [/INST]
-    """
+Requirements:
+- Exactly 5 scenes.
+- Each narration should be 1-2 sentences.
+- Include a clear moral lesson.
+[/INST]
+"""
 
     response = llm(
         prompt,
@@ -54,7 +56,7 @@ def generate_story():
 
     text = response["choices"][0]["text"]
 
-    # Safely extract JSON
+    # Extract JSON safely
     start = text.find("{")
     end = text.rfind("}") + 1
     if start == -1 or end == -1:
