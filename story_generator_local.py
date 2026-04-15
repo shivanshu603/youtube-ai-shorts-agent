@@ -27,11 +27,13 @@ def load_model():
     )
 
 
-# Load the model once at startup
+# Load the model once
 llm = load_model()
 
-# ✅ Use the built-in JSON grammar
-json_grammar = LlamaGrammar.from_json_schema({
+# -------------------------------
+# JSON Schema for Structured Output
+# -------------------------------
+json_schema = {
     "type": "object",
     "properties": {
         "story_title": {"type": "string"},
@@ -64,12 +66,16 @@ json_grammar = LlamaGrammar.from_json_schema({
         "description",
         "tags"
     ]
-})
+}
+
+# ✅ Convert dictionary to JSON string
+json_grammar = LlamaGrammar.from_json_schema(json.dumps(json_schema))
 
 
 def generate_story():
     """
-    Generate a brand-new, unique story every time with guaranteed valid JSON.
+    Generate a brand-new, unique Hindi moral story
+    with guaranteed valid JSON output.
     """
     unique_seed = datetime.utcnow().isoformat()
 
@@ -81,7 +87,7 @@ Create a completely new and unique Hindi moral story using this seed: {unique_se
 Requirements:
 - Exactly 5 scenes.
 - Each scene must include "narration" and "image_prompt".
-- The last scene should clearly present a moral lesson.
+- The final scene should clearly present a moral lesson.
 - Use simple Hindi suitable for all ages.
 - Provide an engaging YouTube title, description, and 3-5 relevant tags.
 - Respond ONLY with valid JSON.
@@ -100,10 +106,10 @@ Requirements:
     text = response["choices"][0]["text"].strip()
     print("✅ Generated JSON:\n", text)
 
-    # Parse the JSON safely
+    # Parse JSON safely
     data = json.loads(text)
 
-    # Additional validation to ensure exactly 5 scenes
+    # Final validation
     if len(data.get("scenes", [])) != 5:
         raise ValueError("Generated story does not contain exactly 5 scenes.")
 
