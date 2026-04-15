@@ -1,9 +1,18 @@
+import os
+import json
+from datetime import datetime
 from google import genai
 from google.genai import types
-import json
-from config import GEMINI_API_KEY
-from prompts import STORY_PROMPT
 
+from config import *
+from prompts import STORY_PROMPT
+from story_manager import get_next_episode  # ✅ Important Import
+from image_generator import generate_image
+from voice_generator import generate_voice
+from video_creator import create_video
+from youtube_uploader import upload_video
+
+# Initialize Gemini Client
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 def generate_story():
