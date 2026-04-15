@@ -2,9 +2,11 @@ import json
 from llama_cpp import Llama
 from huggingface_hub import hf_hub_download
 
-MODEL_REPO = "TheBloke/Phi-3-mini-4k-instruct-GGUF"
-MODEL_FILE = "phi-3-mini-4k-instruct.Q4_K_M.gguf"
+# Public GGUF model
+MODEL_REPO = "TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF"
+MODEL_FILE = "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"
 
+# Load model once
 def load_model():
     model_path = hf_hub_download(
         repo_id=MODEL_REPO,
@@ -12,13 +14,14 @@ def load_model():
     )
     return Llama(
         model_path=model_path,
-        n_ctx=4096,
-        n_threads=4
+        n_ctx=2048,
+        n_threads=4,
+        verbose=False
     )
 
-def generate_story():
-    llm = load_model()
+llm = load_model()
 
+def generate_story():
     prompt = """
     <s>[INST]
     Create a unique and engaging Hindi moral story for a YouTube Shorts video.
@@ -41,18 +44,19 @@ def generate_story():
     [/INST]
     """
 
-    output = llm(
+    response = llm(
         prompt,
         max_tokens=800,
         temperature=0.8,
         stop=["</s>"]
     )
 
-    text = output["choices"][0]["text"]
+    text = response["choices"][0]["text"]
 
-    # Extract JSON
+    # Extract JSON safely
     start = text.find("{")
     end = text.rfind("}") + 1
+
     if start == -1 or end == -1:
         raise ValueError("Failed to parse JSON from model output.")
 
