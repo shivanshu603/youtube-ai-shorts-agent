@@ -22,7 +22,7 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg build-essential
+           sudo apt-get install -y ffmpeg fonts-dejavu-core build-essential
 
       - name: Verify FFmpeg Installation
         run: ffmpeg -version
