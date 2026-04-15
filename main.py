@@ -17,7 +17,7 @@ client = genai.Client(api_key=GEMINI_API_KEY)
 
 def generate_story():
     response = client.models.generate_content(
-        model="gemini-1.5-flash",  # ✅ Updated model
+        model="gemini-2.0-flash",  # ✅ Correct and widely supported model
         contents=STORY_PROMPT,
         config=types.GenerateContentConfig(
             temperature=0.8,
