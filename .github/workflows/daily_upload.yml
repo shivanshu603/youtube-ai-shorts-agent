@@ -19,12 +19,8 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install System Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg build-essential
-
-    
+      - name: Check FFmpeg Availability
+        run: ffmpeg -version
 
       - name: Install Python Dependencies
         run: |
@@ -33,7 +29,7 @@ jobs:
 
       - name: Run AI Agent
         env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}  # Optional
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
