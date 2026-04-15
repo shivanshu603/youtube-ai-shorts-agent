@@ -2,10 +2,11 @@ from moviepy.editor import (
     ImageClip,
     AudioFileClip,
     concatenate_videoclips,
+    CompositeVideoClip,
+    TextClip,
     CompositeAudioClip,
 )
 import os
-
 
 def create_video(image_paths, audio_paths, output_path):
     clips = []
@@ -14,17 +15,30 @@ def create_video(image_paths, audio_paths, output_path):
         audio = AudioFileClip(aud_path)
         duration = audio.duration
 
-        # Ken Burns effect (zoom-in)
+        # Ken Burns zoom effect
         image_clip = (
             ImageClip(img_path)
             .set_duration(duration)
             .resize(height=1920)
-            .resize(lambda t: 1 + 0.05 * t)  # slight zoom
-            .set_audio(audio)
-            .crossfadein(0.5)
+            .resize(lambda t: 1 + 0.05 * t)
+            .set_position("center")
         )
 
-        clips.append(image_clip)
+        # Subtitle
+        subtitle = (
+            TextClip(
+                os.path.basename(aud_path).replace("_", " "),
+                fontsize=60,
+                color="white",
+                method="caption",
+                size=(900, None),
+            )
+            .set_position(("center", "bottom"))
+            .set_duration(duration)
+        )
+
+        video = CompositeVideoClip([image_clip, subtitle]).set_audio(audio)
+        clips.append(video.crossfadein(0.5))
 
     final_clip = concatenate_videoclips(clips, method="compose")
 
@@ -40,5 +54,6 @@ def create_video(image_paths, audio_paths, output_path):
         fps=30,
         codec="libx264",
         audio_codec="aac",
-        bitrate="8000k"
+        bitrate="8000k",
+        threads=4,
     )
