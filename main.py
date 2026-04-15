@@ -1,68 +1,58 @@
-
-import json
 import os
 from datetime import datetime
-from story_generator_local import generate_story
-from config import *
-from prompts import STORY_PROMPT
+
+from config import IMAGE_DIR, AUDIO_DIR, VIDEO_DIR
 from story_manager import get_next_episode
+from story_generator_local import generate_story
 from image_generator import generate_image
 from voice_generator import generate_voice
 from video_creator import create_video
 from youtube_uploader import upload_video
 
-# Initialize Gemini Client
-client = genai.Client(api_key=GEMINI_API_KEY)
-
-def generate_story():
-    response = client.models.generate_content(
-        model="gemini-2.0-flash",  # ✅ Correct and widely supported model
-        contents=STORY_PROMPT,
-        config=types.GenerateContentConfig(
-            temperature=0.8,
-            max_output_tokens=2048
-        )
-    )
-
-    # Extract text safely
-    if hasattr(response, "text") and response.text:
-        text = response.text
-    else:
-        # Fallback extraction
-        text = ""
-        for candidate in response.candidates:
-            for part in candidate.content.parts:
-                if hasattr(part, "text"):
-                    text += part.text
-
-    # Extract JSON from response
-    start = text.find("{")
-    end = text.rfind("}") + 1
-    if start == -1 or end == -1:
-        raise ValueError("Failed to parse JSON from Gemini response.")
-
-    return json.loads(text[start:end])
 
 def main():
+    print("🚀 Starting YouTube AI Shorts Agent...")
+
+    # Get next story and episode number
     story_no, episode_no = get_next_episode()
+
+    # Generate story using local model
     data = generate_story()
 
     image_paths = []
     audio_paths = []
 
-    for i, scene in enumerate(data["scenes"]):
-        img_path = f"{IMAGE_DIR}/scene_{i}.jpg"
-        aud_path = f"{AUDIO_DIR}/scene_{i}.mp3"
+    # Generate images and voice for each scene
+    for i, scene in enumerate(data["scenes"], start=1):
+        img_path = os.path.join(IMAGE_DIR, f"scene_{i}.jpg")
+        aud_path = os.path.join(AUDIO_DIR, f"scene_{i}.mp3")
+
+        print(f"🎨 Generating image for scene {i}...")
         generate_image(scene["image_prompt"], img_path)
+
+        print(f"🎙️ Generating voice for scene {i}...")
         generate_voice(scene["narration"], aud_path)
+
         image_paths.append(img_path)
         audio_paths.append(aud_path)
 
-    video_path = f"{VIDEO_DIR}/story_{story_no}_ep_{episode_no}.mp4"
+    # Create final video
+    video_path = os.path.join(
+        VIDEO_DIR, f"story_{story_no}_ep_{episode_no}.mp4"
+    )
+    print("🎬 Creating final video...")
     create_video(image_paths, audio_paths, video_path)
 
+    # Upload to YouTube
     title = f"{data['youtube_title']} | Episode {episode_no}"
-    upload_video(video_path, title, data["description"], data["tags"])
+    description = data["description"]
+    tags = data.get("tags", [])
+
+    print("📤 Uploading video to YouTube...")
+    upload_video(video_path, title, description, tags)
+
+    print("✅ Video successfully uploaded!")
+
 
 if __name__ == "__main__":
     main()
