@@ -37,14 +37,15 @@ def main():
         audio_paths.append(aud_path)
 
     # Create final video
-video_path = os.path.join(
-    VIDEO_DIR, f"story_{story_no}_ep_{episode_no}.mp4"
-)
+    video_path = os.path.join(
+        VIDEO_DIR, f"story_{story_no}_ep_{episode_no}.mp4"
+    )
 
-narrations = [scene["narration"] for scene in data["scenes"]]
+    # Extract narrations for subtitles
+    narrations = [scene["narration"] for scene in data["scenes"]]
 
-print("🎬 Creating final video...")
-create_video(image_paths, audio_paths, video_path, narrations)
+    print("🎬 Creating final video...")
+    create_video(image_paths, audio_paths, video_path, narrations)
 
     # Upload to YouTube
     title = f"{data['youtube_title']} | Episode {episode_no}"
