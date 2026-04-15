@@ -1,16 +1,16 @@
 import json
+import os
 from llama_cpp import Llama
 from huggingface_hub import hf_hub_download
 
-# Public GGUF model
 MODEL_REPO = "TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF"
 MODEL_FILE = "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"
 
-# Load model once
 def load_model():
     model_path = hf_hub_download(
         repo_id=MODEL_REPO,
-        filename=MODEL_FILE
+        filename=MODEL_FILE,
+        token=os.getenv("HF_TOKEN")  # Optional but recommended
     )
     return Llama(
         model_path=model_path,
@@ -19,6 +19,7 @@ def load_model():
         verbose=False
     )
 
+# Load model once to avoid reloading
 llm = load_model()
 
 def generate_story():
@@ -53,10 +54,9 @@ def generate_story():
 
     text = response["choices"][0]["text"]
 
-    # Extract JSON safely
+    # Extract JSON from model output
     start = text.find("{")
     end = text.rfind("}") + 1
-
     if start == -1 or end == -1:
         raise ValueError("Failed to parse JSON from model output.")
 
