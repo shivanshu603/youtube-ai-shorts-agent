@@ -1,30 +1,27 @@
 import json
 import os
+from config import DATA_DIR
 
-STATE_FILE = "data/story_state.json"
+STATE_FILE = os.path.join(DATA_DIR, "state.json")
 
-def load_state():
-    if not os.path.exists(STATE_FILE):
-        return {"story_number": 1, "episode": 1}
-
-    with open(STATE_FILE, "r") as f:
-        return json.load(f)
-
-def save_state(state):
-    os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
-    with open(STATE_FILE, "w") as f:
-        json.dump(state, f, indent=2)
 
 def get_next_episode():
-    state = load_state()
-    story_no = state["story_number"]
-    episode_no = state["episode"]
+    if not os.path.exists(STATE_FILE):
+        state = {"story_no": 1, "episode_no": 1}
+    else:
+        with open(STATE_FILE, "r") as f:
+            state = json.load(f)
+
+    story_no = state["story_no"]
+    episode_no = state["episode_no"]
 
     # Update for next run
-    state["episode"] += 1
-    if state["episode"] > 5:
-        state["story_number"] += 1
-        state["episode"] = 1
+    state["episode_no"] += 1
+    if state["episode_no"] > 10:
+        state["story_no"] += 1
+        state["episode_no"] = 1
 
-    save_state(state)
+    with open(STATE_FILE, "w") as f:
+        json.dump(state, f)
+
     return story_no, episode_no
