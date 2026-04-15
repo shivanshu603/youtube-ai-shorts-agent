@@ -1,22 +1,21 @@
-import os
+from google import genai
+from google.genai import types
 import json
-from datetime import datetime
-import google.generativeai as genai
-
-from config import *
+from config import GEMINI_API_KEY
 from prompts import STORY_PROMPT
-from story_manager import get_next_episode
-from image_generator import generate_image
-from voice_generator import generate_voice
-from video_creator import create_video
-from youtube_uploader import upload_video
 
-# Configure Gemini
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel("gemini-1.5-pro")
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 def generate_story():
-    response = model.generate_content(STORY_PROMPT)
+    response = client.models.generate_content(
+        model="gemini-1.5-pro",
+        contents=STORY_PROMPT,
+        config=types.GenerateContentConfig(
+            temperature=0.8,
+            max_output_tokens=2048
+        )
+    )
+
     text = response.text
     start = text.find("{")
     end = text.rfind("}") + 1
