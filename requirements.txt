@@ -1,8 +1,14 @@
-google-generativeai
+google-genai
 google-api-python-client
 google-auth
 gTTS
-moviepy
+moviepy==1.0.3
 Pillow
 requests
 python-dotenv
+numpy
+imageio
+imageio-ffmpeg
+decorator
+tqdm
+proglog
