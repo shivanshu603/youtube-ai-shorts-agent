@@ -1,5 +1,4 @@
 from huggingface_hub import InferenceClient
-from PIL import Image
 import os
 
 client = InferenceClient(
@@ -8,12 +7,12 @@ client = InferenceClient(
 )
 
 def generate_image(prompt, output_path):
-    print(f"🖼️ Generating image: {prompt}")
+    print(f"🎨 Generating image: {prompt}")
     image = client.text_to_image(
         prompt=prompt,
-        negative_prompt="blurry, low quality, distorted, cartoonish",
-        height=1920,
+        negative_prompt="blurry, low quality, distorted, cartoon, watermark",
         width=1080,
+        height=1920,
         num_inference_steps=30
     )
     image.save(output_path)
