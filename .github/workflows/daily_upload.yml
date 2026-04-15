@@ -11,25 +11,36 @@ jobs:
     timeout-minutes: 360
 
     steps:
+      # 1️⃣ Checkout repository
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # 2️⃣ Setup Python
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Check FFmpeg Availability
+      # 3️⃣ Install FFmpeg (Required for MoviePy)
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      # 4️⃣ Verify FFmpeg installation (Optional but recommended)
+      - name: Verify FFmpeg Installation
         run: ffmpeg -version
 
+      # 5️⃣ Install Python dependencies
       - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # 6️⃣ Run the AI Agent
       - name: Run AI Agent
         env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}  # Optional
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}  # Optional but recommended
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
