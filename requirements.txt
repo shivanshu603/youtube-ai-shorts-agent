@@ -1,11 +1,11 @@
-google-genai>=0.3.0
+llama-cpp-python==0.2.90
+huggingface-hub
 google-api-python-client
 google-auth
 gTTS
 moviepy==1.0.3
 Pillow
 requests
-python-dotenv
 numpy
 imageio
 imageio-ffmpeg
