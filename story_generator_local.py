@@ -19,7 +19,7 @@ def load_model():
         verbose=False
     )
 
-# Load model once to avoid reloading
+# Load model once
 llm = load_model()
 
 def generate_story():
@@ -54,7 +54,7 @@ def generate_story():
 
     text = response["choices"][0]["text"]
 
-    # Extract JSON from model output
+    # Safely extract JSON
     start = text.find("{")
     end = text.rfind("}") + 1
     if start == -1 or end == -1:
