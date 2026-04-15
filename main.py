@@ -8,12 +8,7 @@ from image_generator import generate_image
 from voice_generator import generate_voice
 from video_creator import create_video
 from youtube_uploader import upload_video
-from huggingface_hub import hf_hub_download
 
-model_path = hf_hub_download(
-    repo_id="microsoft/Phi-3-mini-4k-instruct",
-    filename="model.gguf"
-)
 
 def main():
     print("🚀 Starting YouTube AI Shorts Agent...")
