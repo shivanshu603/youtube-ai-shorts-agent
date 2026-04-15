@@ -1,19 +1,14 @@
 import os
 
-# Gemini API
-# GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+# Base directory of the project
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# YouTube API Credentials
-YOUTUBE_CLIENT_ID = os.getenv("YOUTUBE_CLIENT_ID")
-YOUTUBE_CLIENT_SECRET = os.getenv("YOUTUBE_CLIENT_SECRET")
-YOUTUBE_REFRESH_TOKEN = os.getenv("YOUTUBE_REFRESH_TOKEN")
+# Directories for storing generated assets
+IMAGE_DIR = os.path.join(BASE_DIR, "images")
+AUDIO_DIR = os.path.join(BASE_DIR, "audio")
+VIDEO_DIR = os.path.join(BASE_DIR, "videos")
+DATA_DIR = os.path.join(BASE_DIR, "data")  # ✅ Required for story_manager
 
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
-
-# Directories
-BASE_DIR = "assets"
-IMAGE_DIR = f"{BASE_DIR}/images"
-AUDIO_DIR = f"{BASE_DIR}/audio"
-VIDEO_DIR = f"{BASE_DIR}/videos"
-THUMBNAIL_DIR = f"{BASE_DIR}/thumbnails"
-SUBTITLE_DIR = f"{BASE_DIR}/subtitles"
+# Create directories if they don't exist
+for directory in [IMAGE_DIR, AUDIO_DIR, VIDEO_DIR, DATA_DIR]:
+    os.makedirs(directory, exist_ok=True)
