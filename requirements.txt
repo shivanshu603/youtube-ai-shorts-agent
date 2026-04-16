@@ -20,7 +20,8 @@ numpy
 
 # Text-to-Speech
 TTS==0.22.0
-
+torch==2.2.2
+torchaudio==2.2.2
 # YouTube Upload
 google-api-python-client
 google-auth
