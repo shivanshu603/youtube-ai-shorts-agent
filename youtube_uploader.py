@@ -6,6 +6,8 @@ from googleapiclient.http import MediaFileUpload
 
 
 def upload_video(video_path, title, description, tags):
+    print("📤 Preparing YouTube upload...")
+
     creds = Credentials(
         None,
         refresh_token=os.environ["YOUTUBE_REFRESH_TOKEN"],
@@ -20,18 +22,19 @@ def upload_video(video_path, title, description, tags):
 
     youtube = build("youtube", "v3", credentials=creds)
 
-  body = {
-    "snippet": {
-        "title": title + " #Shorts",
-        "description": description + "\n\n#Shorts #AI #Story",
-        "tags": tags + ["shorts", "ai video", "story"],
-        "categoryId": "24",
-    },
-    "status": {
-        "privacyStatus": "public",
-        "selfDeclaredMadeForKids": False,
-    },
-}
+    # ✅ FIXED INDENTATION + Shorts optimization
+    body = {
+        "snippet": {
+            "title": title + " #Shorts",
+            "description": description + "\n\n#Shorts #AI #Story",
+            "tags": tags + ["shorts", "ai video", "story"],
+            "categoryId": "24",
+        },
+        "status": {
+            "privacyStatus": "public",
+            "selfDeclaredMadeForKids": False,
+        },
+    }
 
     media = MediaFileUpload(video_path, resumable=True)
 
@@ -40,4 +43,8 @@ def upload_video(video_path, title, description, tags):
         body=body,
         media_body=media,
     )
-    request.execute()
+
+    response = request.execute()
+
+    print("✅ Video uploaded successfully!")
+    print("🔗 Video ID:", response.get("id"))
