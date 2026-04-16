@@ -1,4 +1,4 @@
-# Core AI & Model Libraries
+# Core Libraries
 llama-cpp-python==0.2.90
 transformers==4.41.2
 diffusers==0.27.2
@@ -6,7 +6,7 @@ huggingface_hub==0.23.2
 accelerate==0.30.1
 safetensors>=0.4.0
 
-# Torch (CPU version for GitHub Actions)
+# Torch (CPU version suitable for GitHub Actions)
 torch==2.3.1
 torchvision==0.18.1
 torchaudio==2.3.1
@@ -16,11 +16,11 @@ torchaudio==2.3.1
 moviepy==1.0.3
 imageio==2.34.0
 imageio-ffmpeg==0.4.9
-Pillow==9.5.0  # Avoids ANTIALIAS deprecation issue
+Pillow==9.5.0
 numpy>=1.24.0
 opencv-python-headless==4.9.0.80
 
-# Text-to-Speech (No interactive license required)
+# Text-to-Speech (Stable for CI/CD)
 gTTS==2.5.1
 pydub==0.25.1
 
