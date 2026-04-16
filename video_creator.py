@@ -7,99 +7,68 @@ from moviepy.editor import (
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 import os
-import textwrap
 
+WIDTH, HEIGHT = 1080, 1920
 
-def create_subtitle_clip(text, duration, video_size=(1080, 1920)):
-    """Create subtitle overlay using Pillow instead of ImageMagick."""
-    width, height = video_size
-    subtitle_height = 300
-
-    # Create transparent image
-    img = Image.new("RGBA", (width, subtitle_height), (0, 0, 0, 0))
+def create_subtitle(text):
+    img = Image.new("RGBA", (WIDTH, 300), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
-    # Load default font (safe for GitHub Actions)
     try:
         font = ImageFont.truetype("DejaVuSans-Bold.ttf", 60)
     except:
         font = ImageFont.load_default()
 
     # Wrap text
-    wrapped_text = textwrap.fill(text, width=30)
+    lines = []
+    words = text.split()
+    line = ""
+    for word in words:
+        if len(line + word) < 40:
+            line += word + " "
+        else:
+            lines.append(line)
+            line = word + " "
+    lines.append(line)
 
-    # Calculate text position
-    bbox = draw.multiline_textbbox((0, 0), wrapped_text, font=font, align="center")
-    text_width = bbox[2] - bbox[0]
-    text_height = bbox[3] - bbox[1]
+    y = 20
+    for l in lines:
+        w, h = draw.textsize(l, font=font)
+        draw.text(((WIDTH - w) / 2, y), l, font=font, fill="white")
+        y += h + 10
 
-    x = (width - text_width) // 2
-    y = (subtitle_height - text_height) // 2
+    return np.array(img)
 
-    # Draw semi-transparent background
-    background = Image.new("RGBA", (width, subtitle_height), (0, 0, 0, 150))
-    img = Image.alpha_composite(background, img)
-    draw = ImageDraw.Draw(img)
-
-    # Draw text
-    draw.multiline_text(
-        (x, y),
-        wrapped_text,
-        font=font,
-        fill="white",
-        align="center",
-        stroke_width=2,
-        stroke_fill="black"
-    )
-
-    # Convert to MoviePy clip
-    subtitle_clip = (
-        ImageClip(np.array(img))
-        .set_duration(duration)
-        .set_position(("center", "bottom"))
-    )
-
-    return subtitle_clip
-
-
-def create_video(image_paths, audio_paths, output_path, narrations=None):
-    """Create a vertical YouTube Shorts video with subtitles and smooth motion."""
+def create_video(image_paths, audio_paths, output_path, narrations):
     clips = []
 
-    for i, (img_path, aud_path) in enumerate(zip(image_paths, audio_paths)):
+    for img_path, aud_path, narration in zip(image_paths, audio_paths, narrations):
         audio = AudioFileClip(aud_path)
-        duration = audio.duration
 
-        # Base image clip
-        image_clip = (
-            ImageClip(img_path)
-            .set_duration(duration)
-            .resize((1080, 1920))
-            .resize(lambda t: 1 + 0.05 * t)  # Ken Burns zoom effect
-            .set_position("center")
+        # Resize image to vertical format
+        img = ImageClip(img_path).set_duration(audio.duration)
+        img = img.resize(height=HEIGHT)
+        img = img.crop(x_center=img.w / 2, width=WIDTH)
+
+        # Ken Burns zoom effect
+        img = img.resize(lambda t: 1 + 0.05 * t)
+
+        # Subtitle
+        subtitle_img = create_subtitle(narration)
+        subtitle = (
+            ImageClip(subtitle_img)
+            .set_duration(audio.duration)
+            .set_position(("center", "bottom"))
         )
 
-        # Add subtitles if provided
-        if narrations and i < len(narrations):
-            subtitle_clip = create_subtitle_clip(
-                narrations[i], duration, video_size=(1080, 1920)
-            )
-            video = CompositeVideoClip([image_clip, subtitle_clip])
-        else:
-            video = image_clip
+        final = CompositeVideoClip([img, subtitle]).set_audio(audio)
+        clips.append(final)
 
-        video = video.set_audio(audio)
-        clips.append(video.crossfadein(0.5))
-
-    # Concatenate all scenes
-    final_clip = concatenate_videoclips(clips, method="compose")
-
-    # Export final video
-    final_clip.write_videofile(
+    final_video = concatenate_videoclips(clips, method="compose")
+    final_video.write_videofile(
         output_path,
         fps=30,
         codec="libx264",
         audio_codec="aac",
-        bitrate="8000k",
-        preset="medium"
+        threads=4
     )
