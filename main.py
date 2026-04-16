@@ -1,6 +1,5 @@
 import os
-from datetime import datetime
-
+import time
 from config import IMAGE_DIR, AUDIO_DIR, VIDEO_DIR
 from story_manager import get_next_episode
 from story_generator_local import generate_story
@@ -9,14 +8,11 @@ from voice_generator import generate_voice
 from video_creator import create_video
 from youtube_uploader import upload_video
 
-
-def main():
-    print("🚀 Starting YouTube AI Shorts Agent...")
-
+def create_and_upload_video():
     # Get next story and episode number
     story_no, episode_no = get_next_episode()
 
-    # Generate story using local model
+    # Generate story
     data = generate_story()
 
     image_paths = []
@@ -36,12 +32,10 @@ def main():
         image_paths.append(img_path)
         audio_paths.append(aud_path)
 
-    # Create final video
+    # Create video
     video_path = os.path.join(
         VIDEO_DIR, f"story_{story_no}_ep_{episode_no}.mp4"
     )
-
-    # Extract narrations for subtitles
     narrations = [scene["narration"] for scene in data["scenes"]]
 
     print("🎬 Creating final video...")
@@ -55,8 +49,27 @@ def main():
     print("📤 Uploading video to YouTube...")
     upload_video(video_path, title, description, tags)
 
-    print("✅ Video successfully uploaded!")
+    print(f"✅ Episode {episode_no} uploaded successfully!\n")
 
+def main():
+    print("🚀 Starting Continuous YouTube AI Shorts Agent...")
+
+    NUMBER_OF_VIDEOS = int(os.getenv("NUMBER_OF_VIDEOS", 3))  # Default: 3 videos per run
+    DELAY_BETWEEN_UPLOADS = int(os.getenv("UPLOAD_DELAY", 300))  # Default: 5 minutes
+
+    for i in range(NUMBER_OF_VIDEOS):
+        print(f"\n🎬 Creating Video {i+1}/{NUMBER_OF_VIDEOS}")
+        try:
+            create_and_upload_video()
+        except Exception as e:
+            print(f"❌ Error while creating video {i+1}: {e}")
+
+        # Delay between uploads (avoid YouTube rate limits)
+        if i < NUMBER_OF_VIDEOS - 1:
+            print(f"⏳ Waiting {DELAY_BETWEEN_UPLOADS} seconds before next video...")
+            time.sleep(DELAY_BETWEEN_UPLOADS)
+
+    print("🏁 All videos created and uploaded successfully!")
 
 if __name__ == "__main__":
     main()
