@@ -1,28 +1,25 @@
-import os
 import subprocess
-from config import VIDEO_DIR
+import os
 
-WAV2LIP_DIR = "Wav2Lip"
-CHECKPOINT_PATH = os.path.join(WAV2LIP_DIR, "checkpoints", "wav2lip_gan.pth")
-
-
-def generate_avatar(face_image, audio_path, output_path):
+def generate_avatar(face_path, audio_path, output_path):
     """
-    Generates a lip-synced talking avatar using Wav2Lip.
+    Generates a talking avatar video using Wav2Lip.
     """
-    if not os.path.exists(WAV2LIP_DIR):
-        subprocess.run(
-            ["git", "clone", "https://github.com/Rudrabha/Wav2Lip.git"],
-            check=True
-        )
+    if not os.path.exists(face_path):
+        raise FileNotFoundError(f"Avatar image not found: {face_path}")
+    if not os.path.exists(audio_path):
+        raise FileNotFoundError(f"Audio file not found: {audio_path}")
 
     command = [
-        "python",
-        os.path.join(WAV2LIP_DIR, "inference.py"),
-        "--checkpoint_path", CHECKPOINT_PATH,
-        "--face", face_image,
+        "python", "Wav2Lip/inference.py",
+        "--checkpoint_path", "Wav2Lip/checkpoints/wav2lip_gan.pth",
+        "--face", face_path,
         "--audio", audio_path,
-        "--outfile", output_path
+        "--outfile", output_path,
+        "--resize_factor", "1",
+        "--pads", "0", "20", "0", "0"
     ]
 
+    print(f"🧑 Generating avatar: {output_path}")
     subprocess.run(command, check=True)
+    print(f"✅ Avatar video created: {output_path}")
