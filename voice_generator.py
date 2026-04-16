@@ -1,32 +1,26 @@
-import os
-from gtts import gTTS
+from TTS.api import TTS
 from pydub import AudioSegment
+from pydub.utils import which
+import os
 
-def generate_voice(text, output_path, lang="en"):
+# Ensure pydub can find ffmpeg
+AudioSegment.converter = which("ffmpeg")
+
+# Initialize TTS model
+tts = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC", progress_bar=False, gpu=False)
+
+def generate_voice(text, output_path):
     """
-    Generate natural-sounding voice narration using gTTS.
-    Converts the audio to high-quality MP3 suitable for YouTube Shorts.
+    Generate natural-sounding voice narration for a scene.
     """
-    try:
-        print("🎙️ Generating voice narration...")
+    print("🎙️ Generating voice narration...")
 
-        # Temporary file
-        temp_path = output_path.replace(".mp3", "_temp.mp3")
+    temp_wav = output_path.replace(".mp3", ".wav")
+    tts.tts_to_file(text=text, file_path=temp_wav)
 
-        # Generate speech
-        tts = gTTS(text=text, lang=lang, slow=False)
-        tts.save(temp_path)
+    # Convert WAV to MP3
+    audio = AudioSegment.from_wav(temp_wav)
+    audio.export(output_path, format="mp3")
+    os.remove(temp_wav)
 
-        # Enhance audio quality
-        audio = AudioSegment.from_mp3(temp_path)
-        audio = audio.set_frame_rate(44100).set_channels(2)
-        audio.export(output_path, format="mp3", bitrate="192k")
-
-        # Remove temporary file
-        os.remove(temp_path)
-
-        print(f"✅ Voice saved at: {output_path}")
-
-    except Exception as e:
-        print(f"❌ Error generating voice: {e}")
-        raise
+    print(f"✅ Voice saved at: {output_path}")
