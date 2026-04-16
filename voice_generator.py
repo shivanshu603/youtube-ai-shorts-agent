@@ -11,7 +11,7 @@ def generate_voice(text, output_path):
     tts.tts_to_file(
         text=text,
         file_path=output_path,
-        speaker_wav="male_voice.mp3",  # ✅ CHANGE HERE
+        speaker_wav="originalvo-medieval-gamer-voice-darkness-hunts-us-what-youx27ve-learned-stay-226596.mp3",  # ✅ CHANGE HERE
         language="hi"
     )
 
