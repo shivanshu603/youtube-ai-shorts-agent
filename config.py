@@ -1,14 +1,20 @@
 import os
 
-# Base directory of the project
+# Base directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Directories for storing generated assets
+# Data directories
+DATA_DIR = os.path.join(BASE_DIR, "data")
 IMAGE_DIR = os.path.join(BASE_DIR, "images")
 AUDIO_DIR = os.path.join(BASE_DIR, "audio")
 VIDEO_DIR = os.path.join(BASE_DIR, "videos")
-DATA_DIR = os.path.join(BASE_DIR, "data")  # ✅ Required for story_manager
+MUSIC_DIR = os.path.join(BASE_DIR, "music")
 
-# Create directories if they don't exist
-for directory in [IMAGE_DIR, AUDIO_DIR, VIDEO_DIR, DATA_DIR]:
+# Video settings for YouTube Shorts
+VIDEO_WIDTH = 1080
+VIDEO_HEIGHT = 1920
+FPS = 30
+
+# Ensure directories exist
+for directory in [DATA_DIR, IMAGE_DIR, AUDIO_DIR, VIDEO_DIR, MUSIC_DIR]:
     os.makedirs(directory, exist_ok=True)
