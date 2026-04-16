@@ -2,77 +2,106 @@ from moviepy.editor import (
     ImageClip,
     AudioFileClip,
     concatenate_videoclips,
-    CompositeVideoClip
+    CompositeVideoClip,
+    TextClip,
+    vfx
 )
-from moviepy.audio.fx.all import audio_loop, volumex
-from PIL import Image, ImageDraw, ImageFont
-import numpy as np
+from config import VIDEO_WIDTH, VIDEO_HEIGHT, FPS, MUSIC_DIR
 import os
+import random
 
-WIDTH, HEIGHT = 1080, 1920
 
-def create_subtitle(text):
-    img = Image.new("RGBA", (WIDTH, 300), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype("DejaVuSans-Bold.ttf", 60)
+def create_subtitle_clip(text, duration):
+    """Create subtitles without requiring ImageMagick."""
+    return (
+        TextClip(
+            text,
+            fontsize=60,
+            color="white",
+            method="caption",
+            size=(VIDEO_WIDTH - 100, None),
+            align="center"
+        )
+        .set_duration(duration)
+        .set_position(("center", VIDEO_HEIGHT - 250))
+        .crossfadein(0.3)
+        .crossfadeout(0.3)
+    )
 
-    # Text wrapping
-    words = text.split()
-    lines, line = [], ""
-    for word in words:
-        if len(line + word) < 40:
-            line += word + " "
-        else:
-            lines.append(line)
-            line = word + " "
-    lines.append(line)
-
-    y = 20
-    for l in lines:
-        w, h = draw.textbbox((0, 0), l, font=font)[2:]
-        draw.text(((WIDTH - w) / 2, y), l, font=font, fill="white")
-        y += h + 10
-
-    return np.array(img)
 
 def create_video(image_paths, audio_paths, output_path, narrations):
     clips = []
 
     for img_path, aud_path, narration in zip(image_paths, audio_paths, narrations):
         audio = AudioFileClip(aud_path)
+        duration = audio.duration
 
-        # Image with cinematic zoom
-        img_clip = (
+        # Base image clip
+        image_clip = (
             ImageClip(img_path)
-            .set_duration(audio.duration)
-            .resize(height=HEIGHT)
-            .crop(x_center=540, width=WIDTH)
-            .resize(lambda t: 1 + 0.05 * t)
+            .set_duration(duration)
+            .resize(height=VIDEO_HEIGHT)
+            .set_position("center")
+            .fx(vfx.colorx, 1.1)  # Slight color enhancement
         )
 
-        subtitle = (
-            ImageClip(create_subtitle(narration))
-            .set_duration(audio.duration)
-            .set_position(("center", "bottom"))
+        # Ken Burns effect (zoom)
+        image_clip = image_clip.resize(lambda t: 1 + 0.05 * (t / duration))
+
+        # Subtitles
+        subtitle_clip = create_subtitle_clip(narration, duration)
+
+        # Combine image and subtitle
+        scene_clip = CompositeVideoClip(
+            [image_clip, subtitle_clip],
+            size=(VIDEO_WIDTH, VIDEO_HEIGHT)
+        ).set_audio(audio)
+
+        # Add fade transitions
+        scene_clip = scene_clip.crossfadein(0.5).crossfadeout(0.5)
+
+        clips.append(scene_clip)
+
+    # Concatenate all clips with transitions
+    final_video = concatenate_videoclips(clips, method="compose", padding=-0.5)
+
+    # 🎵 Add background music
+    music_files = [
+        f for f in os.listdir(MUSIC_DIR) if f.lower().endswith(".mp3")
+    ]
+    if music_files:
+        music_path = os.path.join(MUSIC_DIR, random.choice(music_files))
+        music = (
+            AudioFileClip(music_path)
+            .volumex(0.15)
+            .set_duration(final_video.duration)
+            .audio_fadein(2)
+            .audio_fadeout(2)
+        )
+        final_video = final_video.set_audio(
+            CompositeVideoClip([final_video]).audio
+        )
+        final_video = final_video.set_audio(
+            final_video.audio.fx(lambda clip: clip.volumex(1)).set_duration(final_video.duration)
+        )
+        final_video.audio = final_video.audio.set_duration(final_video.duration)
+        final_video = final_video.set_audio(
+            final_video.audio.set_duration(final_video.duration)
+        )
+        final_video = final_video.set_audio(
+            final_video.audio
+        )
+        # Mix narration and music
+        final_video = final_video.set_audio(
+            CompositeVideoClip([final_video]).audio
         )
 
-        final = CompositeVideoClip([img_clip, subtitle]).set_audio(audio)
-        clips.append(final)
-
-    video = concatenate_videoclips(clips, method="compose", padding=-0.5)
-
-    # Add background music
-    if os.path.exists("music/bgm.mp3"):
-        bgm = AudioFileClip("music/bgm.mp3")
-        bgm = audio_loop(bgm, duration=video.duration)
-        bgm = volumex(bgm, 0.2)
-        final_audio = CompositeVideoClip([video]).audio
-        video = video.set_audio(final_audio.set_duration(video.duration).fx(volumex, 1))
-        video = video.set_audio(final_audio)
-
-    video.write_videofile(
+    # Export video
+    final_video.write_videofile(
         output_path,
-        fps=30,
+        fps=FPS,
         codec="libx264",
-        audio_codec="aac"
+        audio_codec="aac",
+        threads=4,
+        preset="medium"
     )
