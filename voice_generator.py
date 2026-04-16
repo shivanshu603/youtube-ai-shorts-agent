@@ -1,10 +1,20 @@
-from TTS.api import TTS
 import os
+from TTS.api import TTS
 
-tts = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC", progress_bar=False, gpu=False)
-
+# Load multilingual model (Hindi supported)
+tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", gpu=False)
 
 def generate_voice(text, output_path):
-    print("🎙️ Generating voice...")
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    tts.tts_to_file(text=text, file_path=output_path)
+    print("🎙️ Generating Hindi male voice...")
+
+    # Add natural speaking style
+    text = f"{text}..."
+
+    tts.tts_to_file(
+        text=text,
+        file_path=output_path,
+        speaker_wav="assets/male_voice.wav",  # 👈 IMPORTANT
+        language="hi"
+    )
+
+    print(f"✅ Voice saved: {output_path}")
