@@ -7,6 +7,8 @@ from image_generator import generate_image
 from voice_generator import generate_voice
 from video_creator import create_video
 from youtube_uploader import upload_video
+from avatar_generator import generate_avatar
+
 
 def create_and_upload_video():
     # Get next story and episode number
@@ -15,13 +17,17 @@ def create_and_upload_video():
     # Generate story
     data = generate_story()
 
-    image_paths = []
+    visual_paths = []  # Can contain either images or avatar videos
     audio_paths = []
 
-    # Generate images and voice for each scene
+    # Path to the avatar face image
+    avatar_face = os.path.join("assets", "avatar.jpg")
+
+    # Generate visuals and voice for each scene
     for i, scene in enumerate(data["scenes"], start=1):
         img_path = os.path.join(IMAGE_DIR, f"scene_{i}.jpg")
         aud_path = os.path.join(AUDIO_DIR, f"scene_{i}.mp3")
+        avatar_video_path = os.path.join(VIDEO_DIR, f"avatar_scene_{i}.mp4")
 
         print(f"🎨 Generating image for scene {i}...")
         generate_image(scene["image_prompt"], img_path)
@@ -29,17 +35,21 @@ def create_and_upload_video():
         print(f"🎙️ Generating voice for scene {i}...")
         generate_voice(scene["narration"], aud_path)
 
-        image_paths.append(img_path)
+        print(f"🧑‍🎤 Generating avatar for scene {i}...")
+        generate_avatar(avatar_face, aud_path, avatar_video_path)
+
+        # Use avatar video instead of static image
+        visual_paths.append(avatar_video_path)
         audio_paths.append(aud_path)
 
-    # Create video
+    # Create final video
     video_path = os.path.join(
         VIDEO_DIR, f"story_{story_no}_ep_{episode_no}.mp4"
     )
     narrations = [scene["narration"] for scene in data["scenes"]]
 
-    print("🎬 Creating final video...")
-    create_video(image_paths, audio_paths, video_path, narrations)
+    print("🎬 Creating final cinematic video...")
+    create_video(visual_paths, audio_paths, video_path, narrations)
 
     # Upload to YouTube
     title = f"{data['youtube_title']} | Episode {episode_no}"
@@ -51,25 +61,27 @@ def create_and_upload_video():
 
     print(f"✅ Episode {episode_no} uploaded successfully!\n")
 
+
 def main():
     print("🚀 Starting Continuous YouTube AI Shorts Agent...")
 
     NUMBER_OF_VIDEOS = int(os.getenv("NUMBER_OF_VIDEOS", 3))  # Default: 3 videos per run
     DELAY_BETWEEN_UPLOADS = int(os.getenv("UPLOAD_DELAY", 300))  # Default: 5 minutes
 
-    for i in range(NUMBER_OF_VIDEOS):
-        print(f"\n🎬 Creating Video {i+1}/{NUMBER_OF_VIDEOS}")
+    for idx in range(NUMBER_OF_VIDEOS):
+        print(f"\n🎬 Creating Video {idx + 1}/{NUMBER_OF_VIDEOS}")
         try:
             create_and_upload_video()
         except Exception as e:
-            print(f"❌ Error while creating video {i+1}: {e}")
+            print(f"❌ Error while creating video {idx + 1}: {e}")
 
-        # Delay between uploads (avoid YouTube rate limits)
-        if i < NUMBER_OF_VIDEOS - 1:
+        # Delay between uploads to avoid rate limits
+        if idx < NUMBER_OF_VIDEOS - 1:
             print(f"⏳ Waiting {DELAY_BETWEEN_UPLOADS} seconds before next video...")
             time.sleep(DELAY_BETWEEN_UPLOADS)
 
     print("🏁 All videos created and uploaded successfully!")
+
 
 if __name__ == "__main__":
     main()
