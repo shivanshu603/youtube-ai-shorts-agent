@@ -1,21 +1,32 @@
-from TTS.api import TTS
 import os
+from gtts import gTTS
+from pydub import AudioSegment
 
-# Initialize a stable and CI/CD-friendly TTS model
-tts = TTS(
-    model_name="tts_models/en/ljspeech/tacotron2-DDC",
-    progress_bar=False,
-    gpu=False
-)
-
-def generate_voice(text: str, output_path: str):
+def generate_voice(text, output_path, lang="en"):
     """
-    Generate natural-sounding narration audio.
+    Generate natural-sounding voice narration using gTTS.
+    Converts the audio to high-quality MP3 suitable for YouTube Shorts.
     """
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    try:
+        print("🎙️ Generating voice narration...")
 
-    print("🎙️ Generating natural voice...")
-    tts.tts_to_file(
-        text=text,
-        file_path=output_path
-    )
+        # Temporary file
+        temp_path = output_path.replace(".mp3", "_temp.mp3")
+
+        # Generate speech
+        tts = gTTS(text=text, lang=lang, slow=False)
+        tts.save(temp_path)
+
+        # Enhance audio quality
+        audio = AudioSegment.from_mp3(temp_path)
+        audio = audio.set_frame_rate(44100).set_channels(2)
+        audio.export(output_path, format="mp3", bitrate="192k")
+
+        # Remove temporary file
+        os.remove(temp_path)
+
+        print(f"✅ Voice saved at: {output_path}")
+
+    except Exception as e:
+        print(f"❌ Error generating voice: {e}")
+        raise
