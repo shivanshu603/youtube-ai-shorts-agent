@@ -11,31 +11,48 @@ jobs:
     timeout-minutes: 360
 
     steps:
+      # 1. Checkout Repository
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # 2. Setup Python
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
+      # 3. Install System Dependencies
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-           sudo apt-get install -y ffmpeg fonts-dejavu-core build-essential
+          sudo apt-get install -y ffmpeg fonts-dejavu-core build-essential
 
+      # 4. Verify FFmpeg Installation
       - name: Verify FFmpeg Installation
         run: ffmpeg -version
 
+      # 5. Install Python Dependencies
       - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # 6. Run the AI YouTube Shorts Agent
       - name: Run AI Agent
         env:
+          # Hugging Face (for models)
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
+
+          # YouTube API Credentials
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+
+          # ✅ Auto-accept Coqui TTS Terms of Service
+          COQUI_TOS_AGREED: "1"
+
+          # Optional: Continuous video generation settings
+          NUMBER_OF_VIDEOS: "3"      # Number of videos to generate per run
+          UPLOAD_DELAY: "300"        # Delay between uploads in seconds (5 minutes)
+
         run: python main.py
