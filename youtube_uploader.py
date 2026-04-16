@@ -20,18 +20,18 @@ def upload_video(video_path, title, description, tags):
 
     youtube = build("youtube", "v3", credentials=creds)
 
-    body = {
-        "snippet": {
-            "title": title,
-            "description": description,
-            "tags": tags,
-            "categoryId": "24",
-        },
-        "status": {
-            "privacyStatus": "public",
-            "selfDeclaredMadeForKids": False,
-        },
-    }
+  body = {
+    "snippet": {
+        "title": title + " #Shorts",
+        "description": description + "\n\n#Shorts #AI #Story",
+        "tags": tags + ["shorts", "ai video", "story"],
+        "categoryId": "24",
+    },
+    "status": {
+        "privacyStatus": "public",
+        "selfDeclaredMadeForKids": False,
+    },
+}
 
     media = MediaFileUpload(video_path, resumable=True)
 
