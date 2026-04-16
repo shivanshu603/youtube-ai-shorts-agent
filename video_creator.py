@@ -5,8 +5,7 @@ from moviepy.editor import (
     AudioFileClip,
     VideoFileClip,
     CompositeVideoClip,
-    concatenate_videoclips,
-    TextClip
+    concatenate_videoclips
 )
 from config import VIDEO_WIDTH, VIDEO_HEIGHT, FPS, MUSIC_DIR
 
@@ -18,80 +17,69 @@ def create_video(
     narrations=None,
     avatar_paths=None,
 ):
-    """
-    Creates a cinematic vertical video for YouTube Shorts.
-    Uses avatar videos if available; otherwise falls back to images.
-    Adds subtitles and optional background music.
-    """
     clips = []
 
     for i, audio_path in enumerate(audio_paths):
+
+        if not audio_path or not os.path.exists(audio_path):
+            print(f"⚠️ Skipping scene {i+1} (no audio)")
+            continue
+
         audio = AudioFileClip(audio_path)
         duration = audio.duration
 
-        # Use avatar video if available
+        # 🎬 AVATAR OR IMAGE
         if avatar_paths and i < len(avatar_paths) and avatar_paths[i] and os.path.exists(avatar_paths[i]):
             print(f"🎬 Using avatar for scene {i+1}")
-            clip = (
-                VideoFileClip(avatar_paths[i])
-                .resize((VIDEO_WIDTH, VIDEO_HEIGHT))
-                .set_duration(duration)
-                .set_audio(audio)
-            )
+            clip = VideoFileClip(avatar_paths[i]).resize((VIDEO_WIDTH, VIDEO_HEIGHT))
         else:
+            if not image_paths[i] or not os.path.exists(image_paths[i]):
+                print(f"⚠️ Skipping scene {i+1} (no image)")
+                continue
+
             print(f"🖼️ Using image for scene {i+1}")
-            clip = (
-                ImageClip(image_paths[i])
-                .resize((VIDEO_WIDTH, VIDEO_HEIGHT))
-                .set_duration(duration)
-                .set_audio(audio)
-            )
+            clip = ImageClip(image_paths[i]).resize((VIDEO_WIDTH, VIDEO_HEIGHT))
 
-        # Add subtitles if provided
-        if narrations:
-            subtitle = (
-                TextClip(
-                    narrations[i],
-                    fontsize=60,
-                    color="white",
-                    font="DejaVu-Sans-Bold",
-                    method="caption",
-                    size=(VIDEO_WIDTH - 100, None),
-                )
-                .set_position(("center", VIDEO_HEIGHT - 300))
-                .set_duration(duration)
-            )
-            clip = CompositeVideoClip([clip, subtitle])
+        clip = clip.set_duration(duration).set_audio(audio)
 
-        # Add fade transitions
+        # 🎞️ Cinematic zoom (Ken Burns effect)
+        clip = clip.resize(lambda t: 1 + 0.05 * t)
+
+        # ✨ Smooth fade
         clip = clip.fadein(0.5).fadeout(0.5)
+
         clips.append(clip)
 
-    # Concatenate all clips
+    if not clips:
+        raise RuntimeError("❌ No valid clips to render video")
+
     final_clip = concatenate_videoclips(clips, method="compose")
 
-    # Add background music if available
+    # 🎵 BACKGROUND MUSIC (FIXED)
     if os.path.exists(MUSIC_DIR):
         music_files = [
             f for f in os.listdir(MUSIC_DIR)
             if f.lower().endswith((".mp3", ".wav"))
         ]
+
         if music_files:
             music_path = os.path.join(MUSIC_DIR, random.choice(music_files))
             print(f"🎵 Adding background music: {music_path}")
-            bg_music = (
-                AudioFileClip(music_path)
-                .volumex(0.2)
-                .set_duration(final_clip.duration)
-            )
+
+            bg_music = AudioFileClip(music_path).volumex(0.15)
+
+            bg_music = bg_music.set_duration(final_clip.duration)
+
+            final_audio = CompositeVideoClip([final_clip]).audio
+            final_audio = final_audio.volumex(1.0)
+
+            final_audio = final_audio.set_duration(final_clip.duration)
+
             final_clip = final_clip.set_audio(
-                CompositeVideoClip([final_clip]).audio
-            )
-            final_clip = final_clip.set_audio(
-                final_clip.audio.volumex(1.0).audio_fadein(1).audio_fadeout(1)
+                final_audio.audio_fadein(1).audio_fadeout(1)
             )
 
-    # Export final video
+    # 💾 EXPORT
     print(f"💾 Exporting video to: {output_path}")
     final_clip.write_videofile(
         output_path,
