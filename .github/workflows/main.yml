@@ -27,7 +27,7 @@ jobs:
       - name: Verify FFmpeg Installation
         run: ffmpeg -version
 
-      - name: Install Python Dependencies  
+      - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install "numpy==1.26.4"
@@ -39,6 +39,6 @@ jobs:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
-          NUMBER_OF_VIDEOS: 3          # Continuous generation per run
-          UPLOAD_DELAY: 300            # Delay between uploads (seconds)
+          NUMBER_OF_VIDEOS: 3
+          UPLOAD_DELAY: 300
         run: python main.py
