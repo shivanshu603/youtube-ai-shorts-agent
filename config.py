@@ -11,6 +11,7 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 VIDEO_WIDTH = 1080
 VIDEO_HEIGHT = 1920
 FPS = 30
+MUSIC_DIR = "music"
 
 # Ensure directories exist
 for directory in [IMAGE_DIR, AUDIO_DIR, VIDEO_DIR, MUSIC_DIR, DATA_DIR]:
